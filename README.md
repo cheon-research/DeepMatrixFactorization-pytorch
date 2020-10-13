@@ -1,7 +1,7 @@
 # DMF pytorch implementation
 
 Non-official Implementation for "Deep Matrix Factorization Models for Recommender Systems"  
-In Proceedings of the 26th International Joint Conference on Artificial Intelligence. 3119–3125 (IJCAI 2019)  
+In Proceedings of the 26th International Joint Conference on Artificial Intelligence. 3119–3125 (IJCAI 2017)  
 
 https://www.ijcai.org/Proceedings/2017/0447.pdf  
 
