@@ -1,5 +1,6 @@
 __pycache__/
-.idea
+dataset/
+output/
+
 multi_run.py
-multi_run_6.py
-multi_run_7.py
+exp_DMF.py

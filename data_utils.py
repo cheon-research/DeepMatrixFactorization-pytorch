@@ -4,16 +4,13 @@ import scipy.sparse as sp
 
 
 def load_train_data(dataset):
-    # modified for J-NCF, explicit feedback
-    if dataset == 'ml-1m':
-        data = pd.read_csv('dataset/ml-1m.train.rating', sep='\t', header=None, names=['user', 'item', 'rating'], usecols=[0, 1, 2],
-                        dtype={0: np.int16, 1: np.int16, 2:np.int8})
-    elif dataset == 'ml-100k':
-        data = pd.read_csv('dataset/ml-100k.train.rating.csv', sep=',', header=None, names=['user', 'item', 'rating'], usecols=[0, 1, 2],
-                        dtype={0: np.int16, 1: np.int16, 2:np.int8})
-    elif dataset == 'yelp':
-        data = pd.read_csv('dataset/yelp.train.rating.csv', sep=',', header=None, names=['user', 'item', 'rating'], usecols=[0, 1, 2],
-                        dtype={0: np.int32, 1: np.int32, 2:np.int8})
+    if dataset == 'ml1m':
+        data = pd.read_csv('dataset/ml1m.train.rating', sep='\t', header=None, names=['user', 'item', 'rating'], usecols=[0, 1, 2],
+                        dtype={0: np.int32, 1: np.int32, 2:np.float})
+    else:
+        dataset_file = 'dataset/' + dataset + '.train.rating.csv'
+        data = pd.read_csv(dataset_file, sep='\t', header=None, names=['user', 'item', 'rating'], usecols=[0, 1, 2],
+                        dtype={0: np.int32, 1: np.int32, 2:np.float})
 
     n_user, n_item = data['user'].max() + 1, data['item'].max() + 1
     user_count = data.groupby('user').count()['item'].values.reshape(-1) # count interacted items for each user
@@ -42,9 +39,9 @@ def load_train_data(dataset):
     return user_item_matrix, item_user_matrix, users, items, ratings, neg_candidates, user_count, user_rating_max
 
 
-def load_test_ml_1m():
+def load_test_ml1m():
     test_users, test_items = [], []
-    with open('dataset/ml-1m.test.negative', 'r') as fd:
+    with open('dataset/ml1m.test.negative', 'r') as fd:
         line = fd.readline()
         while line is not None and line != '':
             arr = line.split('\t')
@@ -58,21 +55,10 @@ def load_test_ml_1m():
     return np.array(test_users), np.array(test_items)
 
 
-def load_test_ml_100k():
+def load_test_data(data):
     test_users, test_items = [], []
-    data = pd.read_csv('dataset/ml-100k.test.negative.csv', sep=',', header=None, names=['user', 'item'], 
-        usecols=[0, 1], dtype={0: np.int16, 1: np.int16})
-
-    n_user, n_item = data['user'].max() + 1, data['item'].max() + 1
-    users, items = data['user'].values, data['item'].values
-
-    return np.array(users), np.array(items)
-
-
-def load_test_yelp():
-    test_users, test_items = [], []
-    data = pd.read_csv('dataset/yelp.test.negative.csv', sep=',', header=None, names=['user', 'item'], 
-        usecols=[0, 1], dtype={0: np.int32, 1: np.int32})
+    data = pd.read_csv('dataset/' + data + '.test.negatives.csv', sep='\t', header=None, names=['user', 'item'], 
+        usecols=[0, 1], dtype={0: np.int64, 1: np.int64})
 
     n_user, n_item = data['user'].max() + 1, data['item'].max() + 1
     users, items = data['user'].values, data['item'].values

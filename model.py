@@ -4,21 +4,35 @@ import torch.nn.functional as F
 
 
 class DMF(nn.Module):
-    def __init__(self, n_user, n_item):
+    def __init__(self, layers, n_user, n_item):
         super(DMF, self).__init__()
 
-        self.user_proj = nn.Sequential(
-                        nn.Linear(n_item, 128, bias=False),
-                        nn.ReLU(),
-                        nn.Linear(128, 64),
-                        nn.ReLU())
+        user_MLP = []
+        for i in range(len(layers)):
+            if i == 0:
+                user_MLP.append(nn.Linear(n_item, layers[i], bias=False))
+                user_MLP.append(nn.ReLU())
+            else:
+                user_MLP.append(nn.Linear(layers[i-1], layers[i]))
+                user_MLP.append(nn.ReLU())
+        self.user_proj = nn.Sequential(*user_MLP)
 
-        self.item_proj = nn.Sequential(
-                        nn.Linear(n_user, 128, bias=False),
-                        nn.ReLU(),
-                        nn.Linear(128, 64),
-                        nn.ReLU())
+        item_MLP = []
+        for i in range(len(layers)):
+            if i == 0:
+                item_MLP.append(nn.Linear(n_user, layers[i], bias=False))
+                item_MLP.append(nn.ReLU())
+            else:
+                item_MLP.append(nn.Linear(layers[i-1], layers[i]))
+                item_MLP.append(nn.ReLU())
+        self.item_proj = nn.Sequential(*item_MLP)
 
+        self.cosine = nn.CosineSimilarity(dim=1)
+
+        self.init_weights()
+
+    
+    def init_weights(self):
         for layer in self.user_proj:
             if isinstance(layer, nn.Linear):
                 nn.init.normal_(layer.weight, 0, 0.01)
@@ -35,14 +49,10 @@ class DMF(nn.Module):
                 except:
                     pass
         
-        self.cosine = nn.CosineSimilarity(dim=1)
-        self.treshold = nn.Threshold(0.00001, 0.00001)
-
+        
     def forward(self, user, item):
-        user = F.normalize(user)
-        item = F.normalize(item)
         p = self.user_proj(user)
         q = self.item_proj(item)
 
         pred = self.cosine(p, q)
-        return self.treshold(pred)
+        return torch.min(torch.ones_like(pred), torch.max(torch.ones_like(pred) * 1e-6, pred))
